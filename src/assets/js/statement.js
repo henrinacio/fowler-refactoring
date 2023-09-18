@@ -1,7 +1,33 @@
 export function statement (invoice, plays) {
-  let totalAmount = 0
-
   let result = `Statement for ${invoice.customer}\n`
+
+  for (const perf of invoice.performances) {
+    // exibe a linha para esta requisição
+    result += ` ${playFor(perf).name}: ${usd(amountFor(perf))} (${perf.audience} seats)\n`
+  }
+
+  result += `Amount owed is ${usd(totalAmount())}\n`
+  result += `You earned ${totalVolumeCredits()} credits\n`
+
+  function totalAmount () {
+    let result = 0
+
+    for (const perf of invoice.performances) {
+      result += amountFor(perf)
+    }
+
+    return result
+  }
+
+  function totalVolumeCredits () {
+    let result = 0
+
+    for (const perf of invoice.performances) {
+      result += volumeCreditsFor(perf)
+    }
+
+    return result
+  }
 
   function usd (aNumber) {
     return new Intl.NumberFormat('en-US', {
@@ -9,6 +35,24 @@ export function statement (invoice, plays) {
       currency: 'USD',
       minimumFractionDigits: 2
     }).format(aNumber / 100)
+  }
+
+  function volumeCreditsFor (aPerformance) {
+    let result = 0
+
+    // soma créditos por volume
+    result += Math.max(aPerformance.audience - 30, 0)
+
+    // soma um crédito extra para cada dez espectadores de comédia
+    if (playFor(aPerformance).type === 'comedy') {
+      result += Math.floor(aPerformance.audience / 5)
+    }
+
+    return result
+  }
+
+  function playFor (aPerformance) {
+    return plays[aPerformance.playID]
   }
 
   function amountFor (aPerformance) {
@@ -34,43 +78,6 @@ export function statement (invoice, plays) {
 
     return result
   }
-
-  function playFor (aPerformance) {
-    return plays[aPerformance.playID]
-  }
-
-  function totalVolumeCredits () {
-    let volumeCredits = 0
-
-    for (const perf of invoice.performances) {
-      volumeCredits += volumeCreditsFor(perf)
-    }
-
-    return volumeCredits
-  }
-
-  function volumeCreditsFor (aPerformance) {
-    let result = 0
-
-    // soma créditos por volume
-    result += Math.max(aPerformance.audience - 30, 0)
-
-    // soma um crédito extra para cada dez espectadores de comédia
-    if (playFor(aPerformance).type === 'comedy') {
-      result += Math.floor(aPerformance.audience / 5)
-    }
-
-    return result
-  }
-
-  for (const perf of invoice.performances) {
-    // exibe a linha para esta requisição
-    result += ` ${playFor(perf).name}: ${usd(amountFor(perf))} (${perf.audience} seats)\n`
-    totalAmount += amountFor(perf)
-  }
-
-  result += `Amount owed is ${usd(totalAmount)}\n`
-  result += `You earned ${totalVolumeCredits()} credits\n`
 
   return result
 }
