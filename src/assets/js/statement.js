@@ -9,10 +9,10 @@ export function statement (invoice, plays) {
     minimumFractionDigits: 2
   }).format
 
-  function amountFor (aPerformance, play) {
+  function amountFor (aPerformance) {
     let result = 0
 
-    switch (play.type) {
+    switch (playFor(aPerformance).type) {
       case 'tragedy':
         result = 40_000
         if (aPerformance.audience > 30) {
@@ -27,7 +27,7 @@ export function statement (invoice, plays) {
         result += 300 * aPerformance.audience
         break
       default:
-        throw new Error(`unknow type: ${play.type}`)
+        throw new Error(`unknow type: ${playFor(aPerformance).type}`)
     }
 
     return result
@@ -38,19 +38,17 @@ export function statement (invoice, plays) {
   }
 
   for (const perf of invoice.performances) {
-    const play = plays[perf.playID]
-    const thisAmount = amountFor(perf, play)
     // soma créditos por volume
     volumeCredits += Math.max(perf.audience - 30, 0)
 
     // soma um crédito extra para cada dez espectadores de comédia
-    if (play.type === 'comedy') {
+    if (playFor(perf).type === 'comedy') {
       volumeCredits += Math.floor(perf.audience / 5)
     }
 
     // exibe a linha para esta requisição
-    result += ` ${play.name}: ${format(thisAmount / 100)} (${perf.audience} seats)\n`
-    totalAmount += thisAmount
+    result += ` ${playFor(perf).name}: ${format(amountFor(perf) / 100)} (${perf.audience} seats)\n`
+    totalAmount += amountFor(perf)
   }
 
   result += `Amount owed is ${format(totalAmount / 100)}\n`
