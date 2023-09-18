@@ -22,21 +22,7 @@ export default function createStatementData (invoice, plays) {
 
     result.play = calculator.play
     result.amount = calculator.amount
-    result.volumeCredits = volumeCreditsFor(result)
-
-    return result
-  }
-
-  function volumeCreditsFor (aPerformance) {
-    let result = 0
-
-    // soma créditos por volume
-    result += Math.max(aPerformance.audience - 30, 0)
-
-    // soma um crédito extra para cada dez espectadores de comédia
-    if (aPerformance.play.type === 'comedy') {
-      result += Math.floor(aPerformance.audience / 5)
-    }
+    result.volumeCredits = calculator.volumeCredits
 
     return result
   }
@@ -71,6 +57,20 @@ class PerformanceCalculator {
         break
       default:
         throw new Error(`unknow type: ${this.play.type}`)
+    }
+
+    return result
+  }
+
+  get volumeCredits () {
+    let result = 0
+
+    // soma créditos por volume
+    result += Math.max(this.performance.audience - 30, 0)
+
+    // soma um crédito extra para cada dez espectadores de comédia
+    if (this.play.type === 'comedy') {
+      result += Math.floor(this.performance.audience / 5)
     }
 
     return result
